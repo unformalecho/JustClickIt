@@ -1,0 +1,55 @@
+:root {
+  --bg: #f3f3f0;
+  --paper: #ffffff;
+  --ink: #131311;
+  --muted: #5d5d57;
+  --soft: #e8e8e2;
+  --soft2: #d9d9d1;
+  --inv-bg: #131311;
+  --inv-ink: #f6f6f1;
+  --shadow: #131311;
+  --good: #177245;
+  --bad: #b3372a;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d0d0c;
+    --paper: #171716;
+    --ink: #f1f1ea;
+    --muted: #a5a59d;
+    --soft: #232320;
+    --soft2: #30302b;
+    --inv-bg: #f1f1ea;
+    --inv-ink: #131311;
+    --shadow: #f1f1ea;
+    --good: #4cc984;
+    --bad: #ff7a6b;
+  }
+}
+/* Manual theme override (Phase 1): [data-theme] wins over prefers-color-scheme. */
+:root[data-theme='light'] {
+  --bg: #f3f3f0;
+  --paper: #ffffff;
+  --ink: #131311;
+  --muted: #5d5d57;
+  --soft: #e8e8e2;
+  --soft2: #d9d9d1;
+  --inv-bg: #131311;
+  --inv-ink: #f6f6f1;
+  --shadow: #131311;
+  --good: #177245;
+  --bad: #b3372a;
+}
+:root[data-theme='dark'] {
+  --bg: #0d0d0c;
+  --paper: #171716;
+  --ink: #f1f1ea;
+  --muted: #a5a59d;
+  --soft: #232320;
+  --soft2: #30302b;
+  --inv-bg: #f1f1ea;
+  --inv-ink: #131311;
+  --shadow: #f1f1ea;
+  --good: #4cc984;
+  --bad: #ff7a6b;
+}
