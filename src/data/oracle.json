@@ -1,0 +1,50 @@
+[
+  {
+    "id": "oracle-01",
+    "text": "It is certain."
+  },
+  {
+    "id": "oracle-02",
+    "text": "Without a doubt."
+  },
+  {
+    "id": "oracle-03",
+    "text": "Yes — definitely."
+  },
+  {
+    "id": "oracle-04",
+    "text": "Most likely."
+  },
+  {
+    "id": "oracle-05",
+    "text": "Signs point to yes."
+  },
+  {
+    "id": "oracle-06",
+    "text": "Reply hazy, ask again after a snack."
+  },
+  {
+    "id": "oracle-07",
+    "text": "Cannot predict now."
+  },
+  {
+    "id": "oracle-08",
+    "text": "Don't count on it."
+  },
+  {
+    "id": "oracle-09",
+    "text": "My reply is no."
+  },
+  {
+    "id": "oracle-10",
+    "text": "Outlook not so good."
+  },
+  {
+    "id": "oracle-11",
+    "text": "Very doubtful."
+  },
+  {
+    "id": "oracle-12",
+    "text": "Ask again, but dramatically this time."
+  }
+]
