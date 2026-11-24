@@ -2,14 +2,30 @@
 
 **One giant button. Eight tiny distractions. Zero productivity guaranteed.**
 
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://unformalecho.github.io/JustClickIt/)
+[![Deploy to GitHub Pages](https://github.com/unformalecho/JustClickIt/actions/workflows/deploy.yml/badge.svg)](https://github.com/unformalecho/JustClickIt/actions/workflows/deploy.yml)
+[![Vite 6](https://img.shields.io/badge/Vite-6.4.6-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![100% client-side](https://img.shields.io/badge/backend-none-lightgrey)](https://unformalecho.github.io/JustClickIt/)
+
+**[▶ Try it live: unformalecho.github.io/JustClickIt](https://unformalecho.github.io/JustClickIt/)** — no install, no account, no ads.
+
 JustClickIt is a monochrome, neobrutalist web app for bored people. Press the big
 button and take whatever the boredom gods hand you — a dare, a drum kit, a reflex
-test, a tiny oracle. All in English, all client-side.
+test, a tiny oracle. All in English, all client-side, all on your device.
 
-> **Phase 1 is complete** (see `TODO.md` §6). The app is a Vite + TypeScript
-> project with persistent local state, achievements, and a daily streak.
-> Phase 2 (Supabase backend, leaderboard, sharing, Party mode) and Phase 3
-> (PWA, SEO/Open Graph, analytics) are **not** built yet.
+[![JustClickIt on a phone — tap the image to open the live app](docs/screenshot.png)](https://unformalecho.github.io/JustClickIt/)
+
+## Table of contents
+
+- [The eight distractions](#the-eight-distractions)
+- [What you get](#what-you-get)
+- [Run it locally](#run-it-locally)
+- [How it is deployed](#how-it-is-deployed)
+- [Data & privacy](#data--privacy)
+- [Project layout](#project-layout)
+- [Content note](#content-note)
+- [Roadmap](#roadmap)
 
 ## The eight distractions
 
@@ -24,7 +40,23 @@ test, a tiny oracle. All in English, all client-side.
 | 7   | Guess the Number | 1–100 with thermal hints                |
 | 8   | The Oracle       | Coin flip, dice roll, decision ball     |
 
-## Setup
+You can also pick any distraction straight from the grid — the button is only
+for when you cannot decide.
+
+## What you get
+
+- **Persistent progress.** Clicks, best scores, play history, theme and sound
+  settings survive reloads (see [Data & privacy](#data--privacy)).
+- **11 achievements** with toasts: First Click, Explorer (4 distractions),
+  Completionist (all 8), Lightning (reaction < 180 ms), Fast Fingers (Tap Rush
+  ≥ 70), Echo Master (Memory Echo level 8), Lucky Guesser (≤ 4 guesses),
+  Beatmaker, Oracle Believer, 3-Day Streak, 7-Day Streak.
+- **Daily streak** shown in the stats bar.
+- **Light / dark / system theme** and a sound toggle.
+- **Self-hosted fonts** (Archivo, Archivo Black, JetBrains Mono) — the site
+  makes zero requests to third parties at runtime.
+
+## Run it locally
 
 Requires **Node.js 22+** and npm.
 
@@ -35,35 +67,31 @@ npm run build    # type-check + production build into dist/
 npm run preview  # serve the production build locally
 ```
 
-## Scripts
-
 | Script             | What it does                               |
 | ------------------ | ------------------------------------------ |
 | `npm run dev`      | Vite dev server                            |
 | `npm run build`    | `tsc -b && vite build`                     |
 | `npm run preview`  | Serve `dist/` (used by the e2e tests)      |
-| `npm test`         | Vitest unit tests                          |
+| `npm test`         | Vitest unit tests (34 tests)               |
 | `npm run test:e2e` | Playwright smoke tests (Chromium + mobile) |
 | `npm run lint`     | ESLint                                     |
 | `npm run format`   | Prettier (write)                           |
 
-## GitHub Pages (hosting decision — locked)
+## How it is deployed
 
 The site is deployed to **GitHub Pages** from `main` via
-`.github/workflows/deploy.yml` (checkout → `npm ci` → `npm run build` →
-deploy `dist/`).
+`.github/workflows/deploy.yml` (checkout → download self-hosted fonts →
+`npm ci` → `npm run build` → deploy `dist/`). Every push to `main` redeploys.
 
-- **Base path:** Vite `base` is `/JustClickIt/` (repo name). The site lives at
-  `https://<user>.github.io/JustClickIt/`. The PWA manifest, fonts and asset
-  URLs all use the same base — do not change it to `/` unless the repo is
-  renamed or a custom domain is added.
+- **Live URL:** `https://unformalecho.github.io/JustClickIt/`
+- **Base path:** Vite `base` is `/JustClickIt/` (repo name). The PWA manifest,
+  fonts and asset URLs all use the same base — do not change it to `/` unless
+  the repo is renamed or a custom domain is added.
 - **Repo must be public** for free GitHub Pages. A private repo needs a paid
   plan; if the code must stay private, revisit this decision.
-- There is **no server** on the host. Everything is static + client-side;
-  the Phase 2 backend (Supabase) is external and called from the browser.
-- No per-PR preview deployments: test previews locally with `npm run preview`.
+- There is **no server** on the host. Everything is static + client-side.
 
-## Data & privacy (Phase 1)
+## Data & privacy
 
 - All progress is stored **locally** in `localStorage` under the key
   `justclickit:v1` (versioned, validated on load). Corrupt data is backed up
@@ -72,18 +100,10 @@ deploy `dist/`).
 - Stored: total clicks, distractions tried, best scores (Reaction, Tap Rush,
   Memory Echo, Guess the Number), play history (last 50), achievements,
   daily streak, theme/sound settings, and an anonymous device ID (created
-  once, used later for the Phase 2 leaderboard — no account, no login).
+  once, reserved for a future leaderboard — no account, no login).
 - **Clear my data** (in the app toolbar) wipes everything after a confirm.
 - No analytics, no tracking, no network requests except the self-hosted fonts
   (which are served from this same site).
-
-## Achievements
-
-11 badges: First Click, Explorer (4 distractions), Completionist (all 8),
-Lightning (reaction < 180 ms), Fast Fingers (Tap Rush ≥ 70), Echo Master
-(Memory Echo level 8), Lucky Guesser (≤ 4 guesses), Beatmaker (10 pad hits
-or 5 auto-beats), Oracle Believer (10 asks), 3-Day Streak, 7-Day Streak.
-Unlocks show a toast once and are listed in the Achievements modal.
 
 ## Project layout
 
@@ -107,7 +127,7 @@ tests/
   e2e/smoke.spec.ts         # Playwright: load, big button, all 8 games, persistence
 ```
 
-## Content note (parity with the prototype)
+## Content note
 
 The content decks were extracted verbatim from the original single-file
 prototype (`justclickit.html`, 1,001 lines). Actual counts: **24 dares,
@@ -115,14 +135,19 @@ prototype (`justclickit.html`, 1,001 lines). Actual counts: **24 dares,
 answers = 76 items**. (The planning TODO said 9 riddles / 11 WYR pairs;
 the file itself has 8 / 10 — the tests assert the real counts.)
 
-Known placeholder carried over from the prototype (to be replaced in
-Phase 2): Would You Rather percentages are locally generated
-(`34 + rand(34)`), not real votes.
+Known placeholder carried over from the prototype: Would You Rather
+percentages are locally generated (`34 + rand(34)`), not real votes.
 
-## Still to do (Phase 2 / 3)
+## Roadmap
+
+This is a for-fun project, not a serious product. **Phase 1 is done** and the
+app stays as it is for now.
+
+Ideas sketched for later, in `TODO.md`, if the mood strikes:
 
 - Phase 2: Supabase (real WYR votes, Global Daily Leaderboard, Share Result
   cards, Submit-a-Dare moderation queue, Party / Pass & Play).
 - Phase 3: PWA manifest + Service Worker, favicon set, SEO / Open Graph,
   privacy-friendly analytics (Umami / Plausible).
-- See `TODO.md` for the full phased checklist.
+
+See `TODO.md` for the full phased checklist.
