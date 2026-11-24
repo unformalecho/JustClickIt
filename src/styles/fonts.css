@@ -1,0 +1,23 @@
+/* Self-hosted fonts (Phase 1). Google serves Archivo / JetBrains Mono as
+   variable fonts, so one WOFF2 per family covers the whole weight range. */
+@font-face {
+  font-family: 'Archivo Black';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/JustClickIt/fonts/ArchivoBlack-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/JustClickIt/fonts/Archivo.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url('/JustClickIt/fonts/JetBrainsMono.woff2') format('woff2');
+}

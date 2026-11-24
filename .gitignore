@@ -1,0 +1,7 @@
+node_modules
+dist
+public/fonts/*.woff2
+playwright-report
+test-results
+.DS_Store
+*.local
