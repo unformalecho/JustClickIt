@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="description"
+      content="JustClickIt — one giant button, eight tiny distractions. Click it and take whatever the boredom gods hand you."
+    />
+    <link rel="icon" href="data:," />
+    <title>JustClickIt — Click. Play. Stop Being Bored.</title>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="hero">
+        <p class="over">For the professionally bored</p>
+        <h1>Bored?<br />Just click it.</h1>
+        <p class="sub">
+          One giant button. <strong>Eight tiny distractions.</strong> Zero productivity guaranteed.
+          Press it and take whatever the boredom gods hand you — a dare, a drum kit, a reflex test,
+          a tiny oracle.
+        </p>
+        <button class="bigbtn" id="bigBtn" type="button">Just Click It</button>
+        <p class="nextup" aria-live="polite">
+          <span class="label">Next up:</span> <span id="nextUp">???</span>
+        </p>
+        <div class="toolbar" aria-label="Settings">
+          <button class="btn ghost" id="themeBtn" type="button">Theme: System</button>
+          <button class="btn ghost" id="soundBtn" type="button">Sound: On</button>
+          <button class="btn ghost" id="achBtn" type="button">🏆 Achievements</button>
+          <button class="btn ghost" id="histBtn" type="button">🕘 History</button>
+          <button class="btn ghost" id="clearBtn" type="button">Clear my data</button>
+        </div>
+      </section>
+
+      <div class="marquee" aria-hidden="true">
+        <div class="track" id="marqueeTrack"></div>
+      </div>
+
+      <section class="stats" aria-label="Your stats">
+        <div class="stat">
+          <div class="num" id="statClicks">0</div>
+          <div class="cap">Times clicked</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="statTried">0/8</div>
+          <div class="cap">Distractions tried</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="statReaction">—</div>
+          <div class="cap">Best reaction</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="statTap">—</div>
+          <div class="cap">Best tap rush</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="statStreak">—</div>
+          <div class="cap">Day streak</div>
+        </div>
+      </section>
+
+      <div class="stage-head">
+        <h2 id="stageTitle">The Stage</h2>
+        <span class="tag" id="stageTag">Standing by</span>
+      </div>
+      <section class="stage" id="stage" aria-live="polite">
+        <div class="empty">
+          <span class="face">¯\_(ツ)_/¯</span>
+          Nothing here yet. Hit the big button up top, or pick a distraction below. Your boredom
+          ends in 3… 2…
+        </div>
+      </section>
+
+      <div class="pick-head">
+        <h2>Or pick your poison</h2>
+        <p>Commitment issues? Fine. Choose your own distraction:</p>
+      </div>
+      <div class="grid" id="grid"></div>
+
+      <footer>
+        <p class="mono">JustClickIt — est. the moment you got bored</p>
+        <p>
+          Still bored after all eight? That is genuinely impressive. Go touch grass, then come back
+          and click again.
+        </p>
+        <p class="mono" id="footNote">
+          Your clicks, records and streak are saved on this device only.
+        </p>
+      </footer>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
