@@ -1,0 +1,42 @@
+[
+  {
+    "id": "riddle-01",
+    "q": "What has keys but can't open a single lock?",
+    "a": "A piano."
+  },
+  {
+    "id": "riddle-02",
+    "q": "The more of me you take, the more you leave behind. What am I?",
+    "a": "Footsteps."
+  },
+  {
+    "id": "riddle-03",
+    "q": "What runs but never walks, has a mouth but never talks, has a bed but never sleeps?",
+    "a": "A river."
+  },
+  {
+    "id": "riddle-04",
+    "q": "What gets wetter the more it dries?",
+    "a": "A towel."
+  },
+  {
+    "id": "riddle-05",
+    "q": "I'm tall when I'm young and short when I'm old. What am I?",
+    "a": "A candle."
+  },
+  {
+    "id": "riddle-06",
+    "q": "What has a head and a tail but no body?",
+    "a": "A coin. (Try the Oracle, below.)"
+  },
+  {
+    "id": "riddle-07",
+    "q": "What belongs to you, but everyone else uses it more than you do?",
+    "a": "Your name."
+  },
+  {
+    "id": "riddle-08",
+    "q": "The person who makes me has no need of me; the person who buys me has no use for me; the person who uses me can neither see nor feel me. What am I?",
+    "a": "A coffin. Cheerful stuff."
+  }
+]
