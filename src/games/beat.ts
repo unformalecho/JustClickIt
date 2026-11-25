@@ -38,7 +38,9 @@ export const beatGame: GameDef = {
     // fires both, so ignore a click that closely follows a pointerdown
     // (and pointerdown is cancelable here, which already suppresses the
     // synthetic click) to keep one physical tap counting exactly once.
-    let lastPointerDown = 0;
+    // Starts at -Infinity, not 0: performance.now() counts from page load,
+    // so 0 would wrongly swallow a keyboard click in the first 500 ms.
+    let lastPointerDown = Number.NEGATIVE_INFINITY;
 
     DRUMS.forEach((d, i) => {
       const b = document.createElement('button');
