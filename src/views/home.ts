@@ -3,6 +3,7 @@ import { pick } from '../lib/random';
 import { el } from '../lib/dom';
 import { ensureAudio } from '../lib/audio/engine';
 import { blip } from '../lib/audio/blips';
+import handIcon from '../assets/icons/hand.svg?raw';
 import type { ViewDeps } from './types';
 
 /**
@@ -20,7 +21,10 @@ export function renderHome(deps: ViewDeps): HTMLElement {
   const btn = el('button', 'bigbtn') as HTMLButtonElement;
   btn.type = 'button';
   btn.id = 'playBtn';
-  btn.textContent = "👆 Let's Play";
+  // Pixel hand cursor (traced from Lio's reference image) + label. The
+  // SVG uses currentColor, so it stays visible on the inverted button in
+  // both themes. Decorative: hidden from screen readers.
+  btn.innerHTML = `${handIcon}<span>Let's Play</span>`;
 
   const nextUp = el('p', 'nextup');
   nextUp.setAttribute('aria-live', 'polite');

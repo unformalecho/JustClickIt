@@ -33,6 +33,14 @@
 .home-hero .bigbtn {
   margin-top: 10px;
 }
+/* Pixel hand icon on the Let's Play button: sized to the button text,
+ * nudged down a touch so the tall hand sits on the baseline. */
+.home-hero .play-icon {
+  height: 1.05em;
+  width: auto;
+  vertical-align: -0.15em;
+  margin-right: 0.35em;
+}
 
 /* ---------- View transitions ---------- */
 #view > * {
