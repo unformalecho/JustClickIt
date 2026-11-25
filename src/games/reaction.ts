@@ -44,8 +44,13 @@ export const reactionGame: GameDef = {
       );
     }
 
-    pad.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
+    // Keyboard activation fires 'click', not 'pointerdown'. A pointer tap
+    // fires both, so ignore a click that closely follows a pointerdown
+    // (and pointerdown is cancelable here, which already suppresses the
+    // synthetic click) to keep one physical tap counting exactly once.
+    let lastPointerDown = 0;
+
+    const onPress = (): void => {
       if (mode === 'idle' || mode === 'done' || mode === 'early') {
         arm();
         return;
@@ -84,6 +89,16 @@ export const reactionGame: GameDef = {
         ctx.checkAchievements();
         blip(740, 0.09);
       }
+    };
+
+    pad.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      lastPointerDown = performance.now();
+      onPress();
+    });
+    pad.addEventListener('click', () => {
+      if (performance.now() - lastPointerDown < 500) return;
+      onPress();
     });
     return () => {
       if (timer) clearTimeout(timer);

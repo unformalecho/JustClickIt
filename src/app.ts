@@ -221,8 +221,18 @@ export function createApp(store: Store, toast: ToastHost): App {
   });
 
   // ---- Modals ----
+  // The element that opened the modal, so focus can go back to it on close.
+  let modalTrigger: HTMLElement | null = null;
+
   function openModal(title: string, body: HTMLElement): void {
-    closeModal();
+    // Capture the trigger before closeModal() removes the old backdrop:
+    // a trigger inside the old modal is about to be detached, so ignore it.
+    const trigger = document.activeElement;
+    const usableTrigger =
+      trigger instanceof HTMLElement && !trigger.closest('#modalBackdrop') ? trigger : null;
+    closeModal(false);
+    modalTrigger = usableTrigger;
+
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
     backdrop.id = 'modalBackdrop';
@@ -230,22 +240,50 @@ export function createApp(store: Store, toast: ToastHost): App {
     modal.className = 'modal';
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-labelledby', 'modalTitle');
     const h = document.createElement('h2');
+    h.id = 'modalTitle';
     h.textContent = title;
     const close = document.createElement('button');
     close.type = 'button';
     close.className = 'btn ghost';
     close.textContent = 'Close';
-    close.addEventListener('click', closeModal);
+    close.addEventListener('click', () => closeModal());
     modal.append(h, body, close);
     backdrop.appendChild(modal);
     backdrop.addEventListener('click', (e) => {
       if (e.target === backdrop) closeModal();
     });
+    // Trap Tab inside the modal so keyboard users cannot tab through to
+    // the page behind the backdrop.
+    backdrop.addEventListener('keydown', (e) => {
+      if (e.key !== 'Tab') return;
+      const focusable = [
+        ...modal.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ),
+      ].filter((el) => !el.hasAttribute('disabled'));
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
     document.body.appendChild(backdrop);
+    close.focus();
   }
-  function closeModal(): void {
+  function closeModal(restore = true): void {
     document.querySelector('#modalBackdrop')?.remove();
+    if (restore && modalTrigger && document.contains(modalTrigger)) {
+      modalTrigger.focus();
+    }
+    modalTrigger = null;
   }
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();

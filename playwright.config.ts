@@ -8,12 +8,12 @@ export default defineConfig({
   retries: 0,
   reporter: 'list',
   use: {
-    baseURL: 'http://127.0.0.1:4173/justclickit/',
+    baseURL: 'http://127.0.0.1:4173/JustClickIt/',
     trace: 'retain-on-failure',
   },
   webServer: {
     command: 'npm run preview -- --port 4173 --strictPort --host 127.0.0.1',
-    url: 'http://127.0.0.1:4173/justclickit/',
+    url: 'http://127.0.0.1:4173/JustClickIt/',
     reuseExistingServer: false,
     timeout: 60_000,
   },

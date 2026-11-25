@@ -34,6 +34,12 @@ export const beatGame: GameDef = {
       setTimeout(() => b.classList.remove('hit'), 130);
     }
 
+    // Keyboard activation fires 'click', not 'pointerdown'. A pointer tap
+    // fires both, so ignore a click that closely follows a pointerdown
+    // (and pointerdown is cancelable here, which already suppresses the
+    // synthetic click) to keep one physical tap counting exactly once.
+    let lastPointerDown = 0;
+
     DRUMS.forEach((d, i) => {
       const b = document.createElement('button');
       b.type = 'button';
@@ -41,6 +47,11 @@ export const beatGame: GameDef = {
       b.innerHTML = `${d.name}<span class="key">KEY ${d.key}</span>`;
       b.addEventListener('pointerdown', (e) => {
         e.preventDefault();
+        lastPointerDown = performance.now();
+        hit(i);
+      });
+      b.addEventListener('click', () => {
+        if (performance.now() - lastPointerDown < 500) return;
         hit(i);
       });
       padsEl.appendChild(b);
