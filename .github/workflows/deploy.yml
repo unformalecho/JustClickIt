@@ -20,11 +20,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Download self-hosted fonts
+        # Binary WOFF2 files are not stored in the repo; CI fetches the
+        # latin subsets from Google Fonts so the deployed site stays
+        # self-hosted (no Google Fonts requests at runtime). They land in
+        # src/assets/fonts so Vite bundles them (hashed, base-aware).
         run: |
-          mkdir -p public/fonts
-          curl -fsSL -o public/fonts/Archivo.woff2 "https://fonts.gstatic.com/s/archivo/v25/k3kPo8UDI-1M0wlSV9XAw6lQkqWY8Q82sLydOxI.woff2"
-          curl -fsSL -o public/fonts/ArchivoBlack-400.woff2 "https://fonts.gstatic.com/s/archivoblack/v23/HTxqL289NzCGg4MzN6KJ7eW6CYyF_g.woff2"
-          curl -fsSL -o public/fonts/JetBrainsMono.woff2 "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD7OwE.woff2"
+          mkdir -p src/assets/fonts
+          curl -fsSL -o src/assets/fonts/Archivo.woff2 "https://fonts.gstatic.com/s/archivo/v25/k3kPo8UDI-1M0wlSV9XAw6lQkqWY8Q82sLydOxI.woff2"
+          curl -fsSL -o src/assets/fonts/ArchivoBlack-400.woff2 "https://fonts.gstatic.com/s/archivoblack/v23/HTxqL289NzCGg4MzN6KJ7eW6CYyF_g.woff2"
+          curl -fsSL -o src/assets/fonts/JetBrainsMono.woff2 "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD7OwE.woff2"
       - uses: actions/setup-node@v4
         with:
           node-version: 22

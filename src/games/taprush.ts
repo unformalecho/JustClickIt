@@ -47,8 +47,13 @@ export const tapRushGame: GameDef = {
       blip(700, 0.1);
     }
 
-    pad.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
+    // Keyboard activation fires 'click', not 'pointerdown'. A pointer tap
+    // fires both, so ignore a click that closely follows a pointerdown
+    // (and pointerdown is cancelable here, which already suppresses the
+    // synthetic click) to keep one physical tap counting exactly once.
+    let lastPointerDown = 0;
+
+    const onPress = (): void => {
       if (!running) {
         count = 0;
         left = 100;
@@ -66,6 +71,16 @@ export const tapRushGame: GameDef = {
         main.textContent = String(count);
         blip(300 + (count % 8) * 40, 0.03, 'square', 0.03);
       }
+    };
+
+    pad.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      lastPointerDown = performance.now();
+      onPress();
+    });
+    pad.addEventListener('click', () => {
+      if (performance.now() - lastPointerDown < 500) return;
+      onPress();
     });
     return () => {
       if (iv) clearInterval(iv);
