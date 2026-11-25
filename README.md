@@ -151,3 +151,9 @@ Ideas sketched for later, in `TODO.md`, if the mood strikes:
   privacy-friendly analytics (Umami / Plausible).
 
 See `TODO.md` for the full phased checklist.
+
+## AI Disclosure
+
+This project was developed with the assistance of AI tools (AI-assisted development / vibe coding).
+
+AI was used to assist with code generation, debugging, and implementation. All development decisions and final changes are reviewed by the developer.
