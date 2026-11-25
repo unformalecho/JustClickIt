@@ -1,28 +1,50 @@
-import { ACTIVITIES, getActivity } from './games/registry';
+import { getActivity } from './games/registry';
 import type { GameContext } from './games/types';
 import { Store } from './lib/store/storage';
-import { checkAchievements, ACHIEVEMENTS, type AchievementDef } from './lib/store/achievements';
+import { checkAchievements, type AchievementDef } from './lib/store/achievements';
 import { applyStreakVisit } from './lib/streak';
-import { pick } from './lib/random';
-import { $, $$, isReducedMotion } from './lib/dom';
-import { ensureAudio, setMuted } from './lib/audio/engine';
-import { blip } from './lib/audio/blips';
+import { $, isReducedMotion } from './lib/dom';
+import { setMuted } from './lib/audio/engine';
 import { confetti } from './lib/fx';
 import { createToastHost, type ToastHost } from './components/toast';
+import { Router, type ViewDirection, type ViewId, type ViewState } from './lib/router';
+import { createMenu } from './components/menu';
+import { renderHome } from './views/home';
+import { renderGames } from './views/games';
+import { renderGameView } from './views/game';
+import { renderStatsView } from './views/stats';
+import { renderAchievementsView } from './views/achievements';
+import { renderSettingsView } from './views/settings';
+import { renderAboutView } from './views/about';
+import type { ViewDeps } from './views/types';
 
 export interface App {
   store: Store;
   openActivity: (id: string) => void;
 }
 
+/** Header title per view. Empty on Home and on game views: those views
+ * carry their own prominent title, which is also the focus target. */
+const VIEW_TITLES: Record<ViewId, string> = {
+  home: '',
+  games: 'Games',
+  game: '',
+  stats: 'Statistics',
+  achievements: 'Achievements',
+  settings: 'Settings',
+  about: 'About',
+};
+
 export function createApp(store: Store, toast: ToastHost): App {
-  const reduced = isReducedMotion() || store.state.settings.reducedMotion;
+  /** Live check: system setting or the stored reduced-motion toggle. */
+  const isReduced = (): boolean => isReducedMotion() || store.state.settings.reducedMotion;
   let currentId: string | null = null;
   let cleanup: (() => void) | null = null;
 
-  const stage = $('#stage') as HTMLElement;
-  const stageTitle = $('#stageTitle') as HTMLElement;
-  const stageTag = $('#stageTag') as HTMLElement;
+  const viewRoot = $('#view') as HTMLElement;
+  const viewTitle = $('#viewTitle') as HTMLElement;
+  const backBtn = $('#backBtn') as HTMLButtonElement;
+  const moreBtn = $('#moreBtn') as HTMLButtonElement;
 
   function applyTheme(): void {
     const theme = store.state.settings.theme;
@@ -39,23 +61,23 @@ export function createApp(store: Store, toast: ToastHost): App {
     if (btn) btn.textContent = `Sound: ${store.state.settings.sound ? 'On' : 'Off'}`;
   }
 
-  function renderStats(): void {
-    const s = store.state;
-    const set = (id: string, v: string) => {
-      const n = $(`#${id}`);
-      if (n) n.textContent = v;
-    };
-    set('statClicks', String(s.clicks));
-    set('statTried', `${Object.keys(s.tried).length}/8`);
-    set('statReaction', s.best.reactionMs === null ? '—' : `${s.best.reactionMs}ms`);
-    set('statTap', s.best.tapRush === null ? '—' : `${s.best.tapRush} taps`);
-    set('statStreak', s.streak.count > 0 ? `🔥 ${s.streak.count}` : '—');
-    $$('.tile').forEach((t) => {
-      const id = t.getAttribute('data-id') ?? '';
-      const done = $('.done', t);
-      if (done) done.textContent = s.tried[id] ? '✓ Tried it' : '';
-      t.classList.toggle('active', currentId === id);
-    });
+  function applyMotion(): void {
+    document.documentElement.dataset.motion = store.state.settings.reducedMotion
+      ? 'reduced'
+      : 'full';
+  }
+
+  /** Run a mounted game's cleanup (if any) and forget the game. */
+  function runCleanup(): void {
+    if (cleanup) {
+      try {
+        cleanup();
+      } catch {
+        // ignore cleanup errors
+      }
+      cleanup = null;
+    }
+    currentId = null;
   }
 
   /** Check achievements, persist unlocks, toast each new one once. */
@@ -74,11 +96,12 @@ export function createApp(store: Store, toast: ToastHost): App {
   const ctx: GameContext = {
     store,
     currentId: () => currentId,
-    reduced,
+    get reduced() {
+      return isReduced();
+    },
     recordPlay(gameId, score) {
       store.markTried(gameId);
       store.recordHistory(gameId, score);
-      renderStats();
     },
     checkAchievements() {
       return runAchievementCheck();
@@ -86,17 +109,14 @@ export function createApp(store: Store, toast: ToastHost): App {
     toast: (title, body) => toast.show(title, body),
   };
 
-  function openActivity(id: string): void {
+  function mountIntoStage(id: string): void {
     const a = getActivity(id);
     if (!a) return;
-    if (cleanup) {
-      try {
-        cleanup();
-      } catch {
-        // ignore cleanup errors
-      }
-      cleanup = null;
-    }
+    const stage = $('#stage', viewRoot) as HTMLElement | null;
+    const stageTitle = $('#stageTitle', viewRoot) as HTMLElement | null;
+    const stageTag = $('#stageTag', viewRoot) as HTMLElement | null;
+    if (!stage || !stageTitle || !stageTag) return;
+    runCleanup();
     currentId = id;
     store.markTried(id);
     stage.innerHTML = '';
@@ -104,248 +124,116 @@ export function createApp(store: Store, toast: ToastHost): App {
     stageTag.textContent = a.tag;
     const result = a.mount(stage, ctx);
     cleanup = typeof result === 'function' ? result : null;
-    renderStats();
     runAchievementCheck();
-    stage.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' });
+    stage.scrollIntoView({ behavior: isReduced() ? 'auto' : 'smooth', block: 'nearest' });
   }
 
-  // Picker grid
-  const grid = $('#grid') as HTMLElement;
-  for (const a of ACTIVITIES) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'tile';
-    b.setAttribute('data-id', a.id);
-    const icon = document.createElement('span');
-    icon.className = 'ticon';
-    icon.setAttribute('aria-hidden', 'true');
-    icon.textContent = a.icon;
-    const name = document.createElement('span');
-    name.className = 'tname';
-    name.textContent = a.name;
-    const desc = document.createElement('span');
-    desc.className = 'tdesc';
-    desc.textContent = a.desc;
-    const done = document.createElement('span');
-    done.className = 'done';
-    b.append(icon, name, desc, done);
-    b.addEventListener('click', () => {
-      blip(500, 0.06);
-      openActivity(a.id);
-    });
-    grid.appendChild(b);
-  }
-
-  // Marquee
-  const words =
-    'CLICK RESPONSIBLY ✦ BOREDOM IS TEMPORARY ✦ PRODUCTIVITY IS OPTIONAL ✦ JUST CLICK IT ✦ ';
-  const track = $('#marqueeTrack');
-  if (track) track.innerHTML = `<span>${words.repeat(4)}</span>`.repeat(2);
-
-  // Big button: slot-machine shuffle, then launch (ported from the prototype).
-  const bigBtn = $('#bigBtn') as HTMLButtonElement;
-  const nextUp = $('#nextUp') as HTMLElement;
-  let shuffling = false;
-  bigBtn.addEventListener('click', () => {
-    if (shuffling) return;
-    store.update((s) => {
-      s.clicks += 1;
-    });
-    renderStats();
-    runAchievementCheck();
-    ensureAudio();
-    blip(392, 0.07);
-    const pool = ACTIVITIES.filter((a) => a.id !== currentId);
-    const target = pick(pool.length > 0 ? pool : ACTIVITIES);
-    if (reduced) {
-      nextUp.textContent = target.name;
-      openActivity(target.id);
+  function openActivity(id: string, trigger: HTMLElement | null = null): void {
+    const a = getActivity(id);
+    if (!a) return;
+    const cur = router.current();
+    if (cur.id === 'game' && cur.gameId === id) {
+      mountIntoStage(id);
       return;
     }
-    shuffling = true;
-    bigBtn.disabled = true;
-    let ticks = 0;
-    const iv = setInterval(() => {
-      nextUp.textContent = pick(ACTIVITIES).name;
-      blip(300 + ticks * 30, 0.03, 'square', 0.03);
-      ticks++;
-      if (ticks >= 11) {
-        clearInterval(iv);
-        nextUp.textContent = `${target.name}!`;
-        shuffling = false;
-        bigBtn.disabled = false;
-        blip(784, 0.1);
-        openActivity(target.id);
-      }
-    }, 70);
-  });
+    router.go({ id: 'game', gameId: id }, trigger);
+    mountIntoStage(id);
+  }
 
-  // ---- Toolbar ----
-  $('#themeBtn')?.addEventListener('click', () => {
-    const order = ['system', 'light', 'dark'] as const;
-    const cur = store.state.settings.theme;
-    const next = order[(order.indexOf(cur) + 1) % order.length] ?? 'system';
-    store.update((s) => {
-      s.settings.theme = next;
-    });
+  function renderView(state: ViewState, _direction: ViewDirection): HTMLElement | null {
+    viewRoot.innerHTML = '';
+    let node: HTMLElement;
+    switch (state.id) {
+      case 'home':
+        node = renderHome(deps);
+        break;
+      case 'games':
+        node = renderGames(deps);
+        break;
+      case 'game':
+        node = renderGameView(state.gameId ?? '');
+        break;
+      case 'stats':
+        node = renderStatsView(deps);
+        break;
+      case 'achievements':
+        node = renderAchievementsView(deps);
+        break;
+      case 'settings':
+        node = renderSettingsView(deps);
+        break;
+      case 'about':
+        node = renderAboutView();
+        break;
+    }
+    viewRoot.appendChild(node);
+    updateHeader(state);
+    return node.querySelector<HTMLElement>('[data-view-heading]');
+  }
+
+  function updateHeader(state: ViewState): void {
+    backBtn.classList.toggle('is-hidden', !router.canGoBack());
+    viewTitle.textContent = VIEW_TITLES[state.id];
+    menu.setCurrent(state.id);
+  }
+
+  /** Re-render the current view. Never re-renders a live game. */
+  function refreshCurrentView(): void {
+    const cur = router.current();
+    if (cur.id === 'game') return;
+    renderView(cur, 'forward');
+  }
+
+  function clearAll(): void {
+    runCleanup();
+    store.reset();
     applyTheme();
-    blip(500, 0.05);
-  });
-  $('#soundBtn')?.addEventListener('click', () => {
-    store.update((s) => {
-      s.settings.sound = !s.settings.sound;
-    });
     applySound();
-    blip(500, 0.05);
-  });
-  $('#achBtn')?.addEventListener('click', () => openAchievementsModal());
-  $('#histBtn')?.addEventListener('click', () => openHistoryModal());
-  $('#clearBtn')?.addEventListener('click', () => {
-    if (
-      window.confirm(
-        'Clear all JustClickIt data on this device? Clicks, records, streak and achievements will be gone.',
-      )
-    ) {
-      store.reset();
-      currentId = null;
-      cleanup = null;
-      stage.innerHTML =
-        '<div class="empty"><span class="face">¯\\_(ツ)_/¯</span>Nothing here yet. Hit the big button up top, or pick a distraction below. Your boredom ends in 3… 2…</div>';
-      stageTitle.textContent = 'The Stage';
-      stageTag.textContent = 'Standing by';
-      applyTheme();
-      applySound();
-      renderStats();
-      toast.show('Data cleared', 'Fresh start. Your boredom is brand new.');
-    }
-  });
-
-  // ---- Modals ----
-  // The element that opened the modal, so focus can go back to it on close.
-  let modalTrigger: HTMLElement | null = null;
-
-  function openModal(title: string, body: HTMLElement): void {
-    // Capture the trigger before closeModal() removes the old backdrop:
-    // a trigger inside the old modal is about to be detached, so ignore it.
-    const trigger = document.activeElement;
-    const usableTrigger =
-      trigger instanceof HTMLElement && !trigger.closest('#modalBackdrop') ? trigger : null;
-    closeModal(false);
-    modalTrigger = usableTrigger;
-
-    const backdrop = document.createElement('div');
-    backdrop.className = 'modal-backdrop';
-    backdrop.id = 'modalBackdrop';
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('aria-modal', 'true');
-    modal.setAttribute('aria-labelledby', 'modalTitle');
-    const h = document.createElement('h2');
-    h.id = 'modalTitle';
-    h.textContent = title;
-    const close = document.createElement('button');
-    close.type = 'button';
-    close.className = 'btn ghost';
-    close.textContent = 'Close';
-    close.addEventListener('click', () => closeModal());
-    modal.append(h, body, close);
-    backdrop.appendChild(modal);
-    backdrop.addEventListener('click', (e) => {
-      if (e.target === backdrop) closeModal();
-    });
-    // Trap Tab inside the modal so keyboard users cannot tab through to
-    // the page behind the backdrop.
-    backdrop.addEventListener('keydown', (e) => {
-      if (e.key !== 'Tab') return;
-      const focusable = [
-        ...modal.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        ),
-      ].filter((el) => !el.hasAttribute('disabled'));
-      if (focusable.length === 0) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (!first || !last) return;
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    });
-    document.body.appendChild(backdrop);
-    close.focus();
+    applyMotion();
+    refreshCurrentView();
+    toast.show('Data cleared', 'Fresh start. Your boredom is brand new.');
   }
-  function closeModal(restore = true): void {
-    document.querySelector('#modalBackdrop')?.remove();
-    if (restore && modalTrigger && document.contains(modalTrigger)) {
-      modalTrigger.focus();
-    }
-    modalTrigger = null;
-  }
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
+
+  const deps: ViewDeps = {
+    store,
+    toast,
+    openGame: (id, trigger = null) => openActivity(id, trigger),
+    refresh: () => refreshCurrentView(),
+    applyTheme,
+    applySound,
+    applyMotion,
+    isReduced,
+    checkAchievements: () => runAchievementCheck(),
+    currentGameId: () => currentId,
+    clearAll,
+  };
+
+  const menu = createMenu(
+    moreBtn,
+    [
+      { id: 'games', label: 'Games' },
+      { id: 'stats', label: 'Statistics' },
+      { id: 'achievements', label: 'Achievements' },
+      { id: 'settings', label: 'Settings' },
+      { id: 'about', label: 'About' },
+    ],
+    (id, item) => {
+      router.go({ id: id as ViewId }, item);
+    },
+  );
+
+  const router = new Router({
+    render: renderView,
+    onLeave: (state) => {
+      if (state.id === 'game') runCleanup();
+    },
+    isMenuOpen: () => menu.isOpen(),
+    closeMenu: () => menu.close(),
+    menuButton: () => moreBtn,
+    fallbackHeading: () => (viewTitle.textContent ? viewTitle : null),
   });
 
-  function openAchievementsModal(): void {
-    const s = store.state;
-    const wrap = document.createElement('div');
-    const unlocked = ACHIEVEMENTS.filter((a) => s.achievements[a.id]).length;
-    const head = document.createElement('p');
-    head.textContent = `${unlocked}/${ACHIEVEMENTS.length} unlocked · ${Object.keys(s.tried).length}/8 distractions tried`;
-    wrap.appendChild(head);
-    for (const a of ACHIEVEMENTS) {
-      const row = document.createElement('div');
-      row.className = `ach-row${s.achievements[a.id] ? '' : ' locked'}`;
-      const icon = document.createElement('span');
-      icon.className = 'aicon';
-      icon.textContent = s.achievements[a.id] ? a.icon : '🔒';
-      const mid = document.createElement('div');
-      const name = document.createElement('div');
-      name.className = 'aname';
-      name.textContent = a.name;
-      const desc = document.createElement('div');
-      desc.className = 'adesc';
-      desc.textContent = a.description;
-      const prog = document.createElement('div');
-      prog.className = 'adesc';
-      const pct = Math.round(a.progress(s) * 100);
-      prog.textContent = s.achievements[a.id]
-        ? `Unlocked ${new Date(s.achievements[a.id] as string).toLocaleDateString()}`
-        : `Progress: ${pct}%`;
-      mid.append(name, desc, prog);
-      row.append(icon, mid);
-      wrap.appendChild(row);
-    }
-    openModal('Achievements', wrap);
-  }
-
-  function openHistoryModal(): void {
-    const wrap = document.createElement('div');
-    const s = store.state;
-    if (s.history.length === 0) {
-      const p = document.createElement('p');
-      p.textContent = 'No history yet. Go click something.';
-      wrap.appendChild(p);
-    } else {
-      const ul = document.createElement('ul');
-      ul.className = 'history-list';
-      for (const entry of s.history) {
-        const li = document.createElement('li');
-        const game = getActivity(entry.gameId);
-        const name = document.createElement('span');
-        name.textContent = `${game?.name ?? entry.gameId}${entry.score !== undefined ? ` — ${entry.score}` : ''}`;
-        const time = document.createElement('time');
-        time.textContent = new Date(entry.at).toLocaleString();
-        li.append(name, time);
-        ul.appendChild(li);
-      }
-      wrap.appendChild(ul);
-    }
-    openModal('History (last 50)', wrap);
-  }
+  backBtn.addEventListener('click', () => router.back());
 
   // ---- Init ----
   store.update((s) => {
@@ -354,7 +242,8 @@ export function createApp(store: Store, toast: ToastHost): App {
   });
   applyTheme();
   applySound();
-  renderStats();
+  applyMotion();
+  router.renderCurrent();
   runAchievementCheck();
   window.addEventListener('beforeunload', () => store.flush());
 

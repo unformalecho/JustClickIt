@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 const GAMES = [
   'Random Dare',
@@ -11,60 +11,151 @@ const GAMES = [
   'The Oracle',
 ];
 
+async function openMenu(page: Page): Promise<void> {
+  await page.locator('#moreBtn').click();
+  await expect(page.locator('[data-menu-popover]')).toBeVisible();
+}
+
+async function goTo(page: Page, label: string): Promise<void> {
+  await openMenu(page);
+  await page.locator('.menu-item', { hasText: label }).click();
+}
+
 test.beforeEach(async ({ page }) => {
   await page.goto('./');
   await page.evaluate(() => window.localStorage.clear());
   await page.reload();
 });
 
-test('loads without console errors and the big button launches a game', async ({ page }) => {
+test("home shows only the title and Let's Play; shuffle opens a game", async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
   });
 
-  await expect(page.locator('h1')).toContainText('Bored?');
-  await expect(page.locator('#statClicks')).toHaveText('0');
+  await expect(page.locator('#homeTitle')).toHaveText('JustClickIt');
+  await expect(page.locator('#playBtn')).toContainText("Let's Play");
+  await expect(page.locator('#backBtn')).toBeHidden();
+  await expect(page.locator('#moreBtn')).toBeVisible();
+  // Nothing else is stacked on Home: no picker, no stage, no stats.
+  await expect(page.locator('.tile')).toHaveCount(0);
+  await expect(page.locator('#stage')).toHaveCount(0);
+  await expect(page.locator('.stats')).toHaveCount(0);
 
-  await page.locator('#bigBtn').click();
-  // Slot-machine shuffle (~770 ms) then a game opens on the stage.
-  await expect(page.locator('#stageTitle')).not.toHaveText('The Stage', { timeout: 5000 });
-  await expect(page.locator('#statClicks')).toHaveText('1');
+  await page.locator('#playBtn').click();
+  // Slot-machine shuffle (~770 ms) then a game opens in its own view.
+  await expect(page.locator('#stageTitle')).toHaveText(new RegExp(`^(${GAMES.join('|')})$`), {
+    timeout: 5000,
+  });
+  await expect(page.locator('#viewTitle')).toHaveText('');
+  await expect(page.locator('#backBtn')).toBeVisible();
 
-  // Clicks survive a reload (localStorage persistence).
-  await page.reload();
+  // The click is counted; Statistics shows it.
+  await goTo(page, 'Statistics');
   await expect(page.locator('#statClicks')).toHaveText('1');
   await expect(page.locator('#statTried')).toHaveText('1/8');
+
+  // A refresh always returns to Home (in-memory navigation).
+  await page.reload();
+  await expect(page.locator('#homeTitle')).toHaveText('JustClickIt');
+  await expect(page.locator('#playBtn')).toBeVisible();
 
   expect(errors).toEqual([]);
 });
 
-test('each of the 8 games opens from the picker grid', async ({ page }) => {
+test('each of the 8 games opens from the Games view', async ({ page }) => {
+  await goTo(page, 'Games');
+  await expect(page.locator('#viewTitle')).toHaveText('Games');
   for (const name of GAMES) {
     await page.locator('.tile', { hasText: name }).click();
     await expect(page.locator('#stageTitle')).toHaveText(name);
+    await page.locator('#backBtn').click();
+    await expect(page.locator('.pick-head h2')).toHaveText('Or pick your poison');
   }
+  await goTo(page, 'Statistics');
   await expect(page.locator('#statTried')).toHaveText('8/8');
   // Trying all 8 unlocks Completionist.
-  await page.locator('#achBtn').click();
-  await expect(page.locator('.modal')).toContainText('Completionist');
+  await goTo(page, 'Achievements');
+  await expect(page.locator('#view')).toContainText('Completionist');
 });
 
-test('theme toggle, achievements and history modals work', async ({ page }) => {
+test('menu navigates to every view and Back returns to Home', async ({ page }) => {
+  const views: Array<[string, string]> = [
+    ['Games', 'Games'],
+    ['Statistics', 'Statistics'],
+    ['Achievements', 'Achievements'],
+    ['Settings', 'Settings'],
+    ['About', 'About'],
+  ];
+  for (const [label, title] of views) {
+    await goTo(page, label);
+    await expect(page.locator('#viewTitle')).toHaveText(title);
+    // The menu marks the current view.
+    await openMenu(page);
+    await expect(page.locator('.menu-item', { hasText: label })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    await page.keyboard.press('Escape');
+    await expect(page.locator('[data-menu-popover]')).toBeHidden();
+    await page.locator('#backBtn').click();
+    await expect(page.locator('#homeTitle')).toHaveText('JustClickIt');
+  }
+});
+
+test('Escape goes back, from depth too', async ({ page }) => {
+  await goTo(page, 'Games');
+  await page.locator('.tile', { hasText: 'Reaction Test' }).click();
+  await expect(page.locator('#stageTitle')).toHaveText('Reaction Test');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.pick-head h2')).toHaveText('Or pick your poison');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#homeTitle')).toHaveText('JustClickIt');
+  // Escape on Home goes nowhere.
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#homeTitle')).toHaveText('JustClickIt');
+});
+
+test('settings persist: theme, sound, reduced motion', async ({ page }) => {
+  await goTo(page, 'Settings');
   await page.locator('#themeBtn').click();
   await expect(page.locator('#themeBtn')).toContainText('Theme: Light');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await page.locator('#soundBtn').click();
+  await expect(page.locator('#soundBtn')).toContainText('Sound: Off');
+  await page.locator('#motionBtn').click();
+  await expect(page.locator('#motionBtn')).toContainText('Motion: Reduced');
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
+
   await page.reload();
+  await goTo(page, 'Settings');
   await expect(page.locator('#themeBtn')).toContainText('Theme: Light');
+  await expect(page.locator('#soundBtn')).toContainText('Sound: Off');
+  await expect(page.locator('#motionBtn')).toContainText('Motion: Reduced');
+});
 
-  await page.locator('#achBtn').click();
-  await expect(page.locator('.modal')).toContainText('Achievements');
-  await expect(page.locator('.modal')).toContainText('First Click');
-  await page.keyboard.press('Escape');
+test('statistics reflect plays and history lists them', async ({ page }) => {
+  await goTo(page, 'Games');
+  await page.locator('.tile', { hasText: 'Beat Pad' }).click();
+  await expect(page.locator('#stageTitle')).toHaveText('Beat Pad');
+  await goTo(page, 'Statistics');
+  await expect(page.locator('#statTried')).toHaveText('1/8');
+  await expect(page.locator('.history-list')).toHaveCount(0);
+  await expect(page.locator('#view')).toContainText('No history yet');
+});
 
-  await page.locator('#histBtn').click();
-  await expect(page.locator('.modal')).toContainText('No history yet');
+test('clear my data resets the app', async ({ page }) => {
+  page.on('dialog', (dialog) => dialog.accept());
+  await goTo(page, 'Games');
+  await page.locator('.tile', { hasText: 'Beat Pad' }).click();
+  await goTo(page, 'Settings');
+  await page.locator('#clearBtn').click();
+  await expect(page.locator('.toasts')).toContainText('Data cleared');
+  await expect(page.locator('#themeBtn')).toContainText('Theme: System');
+  await goTo(page, 'Statistics');
+  await expect(page.locator('#statClicks')).toHaveText('0');
+  await expect(page.locator('#statTried')).toHaveText('0/8');
 });
 
 test('no horizontal overflow at mobile width', async ({ page }) => {
@@ -84,11 +175,11 @@ test('a stored best score survives reload', async ({ page }) => {
         version: 1,
         deviceId: 'test-device',
         clicks: 42,
-        tried: {},
+        tried: { reaction: true },
         triedAt: {},
         best: { reactionMs: 172, tapRush: 88, memoryLevel: 5, guessFewest: 3 },
         counts: { beatHits: 0, beatAutoStarts: 0, oracleAsks: 0 },
-        history: [],
+        history: [{ gameId: 'reaction', at: '2026-11-26T10:00:00.000Z', score: 172 }],
         achievements: {},
         streak: { lastVisit: null, count: 0, best: 0 },
         settings: { theme: 'system', sound: true, reducedMotion: false },
@@ -96,7 +187,46 @@ test('a stored best score survives reload', async ({ page }) => {
     );
   });
   await page.goto('./');
+  await goTo(page, 'Statistics');
   await expect(page.locator('#statClicks')).toHaveText('42');
   await expect(page.locator('#statReaction')).toHaveText('172ms');
   await expect(page.locator('#statTap')).toHaveText('88 taps');
+  await expect(page.locator('.history-list')).toContainText('Reaction Test — 172');
+});
+
+test('reaction test plays with keyboard and pointer', async ({ page }) => {
+  await goTo(page, 'Games');
+  await page.locator('.tile', { hasText: 'Reaction Test' }).click();
+  // Keyboard: Space arms the pad.
+  await page.locator('#rPad').press('Space');
+  await expect(page.locator('#rMain')).toHaveText('Wait for it…');
+  // Pointer: click the moment it flips.
+  await expect(page.locator('#rMain')).toHaveText('TAP!', { timeout: 8000 });
+  await page.locator('#rPad').click();
+  await expect(page.locator('#rMain')).toHaveText(/^\d+ ms$/);
+  await expect(page.locator('#rLog')).toContainText('Your best:');
+});
+
+test('tap rush plays with keyboard and pointer', async ({ page }) => {
+  await goTo(page, 'Games');
+  await page.locator('.tile', { hasText: 'Tap Rush' }).click();
+  // Keyboard first (Space fires click, no pointerdown to confuse the guard),
+  // then pointer taps.
+  for (let i = 0; i < 5; i++) {
+    await page.locator('#tPad').press('Space');
+  }
+  await expect(page.locator('#tMain')).toHaveText('5');
+  for (let i = 0; i < 5; i++) {
+    await page.locator('#tPad').click();
+  }
+  await expect(page.locator('#tMain')).toHaveText('10');
+  // The 10-second game finishes on its own.
+  await expect(page.locator('#tMain')).toHaveText(/^\d+ taps!$/, { timeout: 15000 });
+  const taps = await page.locator('#tMain').evaluate((el) => {
+    const m = /(\d+) taps!/.exec(el.textContent ?? '');
+    return m ? Number(m[1]) : 0;
+  });
+  expect(taps).toBeGreaterThanOrEqual(10);
+  await goTo(page, 'Statistics');
+  await expect(page.locator('#statTap')).toHaveText(`${taps} taps`);
 });
