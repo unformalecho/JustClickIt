@@ -2,6 +2,7 @@ import './styles/fonts.css';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/components.css';
+import './styles/views.css';
 import './styles/games.css';
 import { Store } from './lib/store/storage';
 import { mountApp } from './app';

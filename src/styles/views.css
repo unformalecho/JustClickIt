@@ -1,0 +1,148 @@
+/* ---------- App header ---------- */
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0 18px;
+  position: relative;
+}
+.app-header .view-title {
+  flex: 1;
+  text-align: center;
+  font-family: 'Archivo Black', sans-serif;
+  text-transform: uppercase;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  min-height: 1.4em;
+  outline-offset: 3px;
+}
+.app-header .hbtn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 14px;
+  flex-shrink: 0;
+}
+.app-header .is-hidden {
+  visibility: hidden;
+}
+
+/* ---------- Home hero (title-only) ---------- */
+.home-hero {
+  padding: 8vh 0 4vh;
+}
+.home-hero .bigbtn {
+  margin-top: 10px;
+}
+
+/* ---------- View transitions ---------- */
+#view > * {
+  animation: viewin 0.18s ease;
+}
+@keyframes viewin {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #view > * {
+    animation: none;
+  }
+}
+:root[data-motion='reduced'] #view > * {
+  animation: none;
+}
+
+/* ---------- Section subheads (Statistics history, etc.) ---------- */
+.view-subhead {
+  font-family: 'Archivo Black', sans-serif;
+  text-transform: uppercase;
+  font-size: clamp(1.25rem, 4.5vw, 1.7rem);
+  margin: 38px 0 12px;
+  line-height: 1.1;
+}
+
+/* ---------- More menu popover ---------- */
+.menu-popover {
+  position: absolute;
+  top: calc(100% - 8px);
+  right: 0;
+  z-index: 40;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--shadow);
+  min-width: 220px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+/* The popover uses display:flex, which would otherwise override the
+   `hidden` attribute's display:none. */
+.menu-popover[hidden] {
+  display: none;
+}
+.menu-item {
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 12px 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.92rem;
+  min-height: 44px;
+}
+.menu-item:hover,
+.menu-item:focus-visible {
+  background: var(--soft);
+}
+.menu-item[aria-current='page'] {
+  background: var(--inv-bg);
+  color: var(--inv-ink);
+}
+
+/* ---------- Settings rows ---------- */
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 3px solid var(--ink);
+  background: var(--paper);
+  box-shadow: 6px 6px 0 var(--shadow);
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.setting-name {
+  font-family: 'Archivo Black', sans-serif;
+  text-transform: uppercase;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+.setting-desc {
+  font-size: 0.86rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.setting-row .btn {
+  flex-shrink: 0;
+}
+
+/* ---------- About view ---------- */
+.about {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding-top: 12px;
+}
+.about .mono {
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
