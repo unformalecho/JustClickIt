@@ -69,9 +69,11 @@ fixed (commit `4670dd2`). Remaining:
       marks your streak, then congratulates you with something like "Congrats,
       (name)! You get nothing." (and variations). No account, no backend, no
       benefit — the joke is the point.
-- [ ] **Fix Tap Rush tap issue** — something is off when tapping, similar to
-      the profile-page flip-card case (blue tap-highlight flash). Diagnose the
-      exact symptom first, then fix.
+- [ ] **Fix blue flash on tap (all UI components)** — the blue
+      tap-highlight flash (profile-page flip-card case) also shows up in Tap
+      Rush and other tappable UI. Fix it everywhere, same approach as the
+      flip card (`-webkit-tap-highlight-color: transparent` on tappable
+      components, plus the focus-ring follow-ups if the flash persists).
 - [ ] **UI sound effects** — small sounds for UI actions, e.g. opening the
       ⋯ menu and other taps/clicks. Same Web Audio synth approach as the game
       sounds; respect the sound toggle.
