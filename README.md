@@ -1,6 +1,6 @@
 # JustClickIt
 
-**One giant button. Eight tiny distractions. Zero productivity guaranteed.**
+**One giant button. Nine tiny distractions. Zero productivity guaranteed.**
 
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://unformalecho.github.io/JustClickIt/)
 [![Deploy to GitHub Pages](https://github.com/unformalecho/JustClickIt/actions/workflows/deploy.yml/badge.svg)](https://github.com/unformalecho/JustClickIt/actions/workflows/deploy.yml)
@@ -18,7 +18,7 @@ test, a tiny oracle. All in English, all client-side, all on your device.
 
 ## Table of contents
 
-- [The eight distractions](#the-eight-distractions)
+- [The nine distractions](#the-nine-distractions)
 - [What you get](#what-you-get)
 - [Run it locally](#run-it-locally)
 - [How it is deployed](#how-it-is-deployed)
@@ -27,7 +27,7 @@ test, a tiny oracle. All in English, all client-side, all on your device.
 - [Content note](#content-note)
 - [Roadmap](#roadmap)
 
-## The eight distractions
+## The nine distractions
 
 | #   | Game             | What it does                            |
 | --- | ---------------- | --------------------------------------- |
@@ -124,7 +124,7 @@ src/
   components/toast.ts       # achievement toast queue
 tests/
   unit/                     # schema, storage, streak, achievements, random, data
-  e2e/smoke.spec.ts         # Playwright: load, big button, all 8 games, persistence
+  e2e/smoke.spec.ts         # Playwright: load, big button, all 9 games, persistence
 ```
 
 ## Content note

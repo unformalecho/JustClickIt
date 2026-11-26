@@ -9,11 +9,12 @@ function stateWith(patch: (s: ReturnType<typeof defaultState>) => void) {
 }
 
 describe('achievements', () => {
-  it('defines 11 achievements with unique ids', () => {
+  it('defines 12 achievements with unique ids', () => {
     const ids = ACHIEVEMENTS.map((a) => a.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids).toContain('first-click');
     expect(ids).toContain('completionist');
+    expect(ids).toContain('chess-master');
     expect(ids).toContain('streak-7');
   });
 
@@ -51,9 +52,21 @@ describe('achievements', () => {
         memory: true,
         guess: true,
         oracle: true,
+        chess: true,
       };
     });
     expect(checkAchievements(all).map((a) => a.id)).toContain('completionist');
+  });
+
+  it('chess-master unlocks on the first Mini Chess win', () => {
+    const s = stateWith((x) => {
+      x.counts.chessWins = 1;
+    });
+    expect(checkAchievements(s).map((a) => a.id)).toContain('chess-master');
+    const none = stateWith((x) => {
+      x.counts.chessWins = 0;
+    });
+    expect(checkAchievements(none).map((a) => a.id)).not.toContain('chess-master');
   });
 
   it('lightning needs reaction < 180ms (180 itself does not count)', () => {

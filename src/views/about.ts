@@ -7,7 +7,7 @@ export function renderAboutView(): HTMLElement {
   const grass = el(
     'p',
     undefined,
-    'Still bored after all eight? That is genuinely impressive. Go touch grass, then come back and click again.',
+    'Still bored after all nine? That is genuinely impressive. Go touch grass, then come back and click again.',
   );
   const note = el('p', 'mono', 'Your clicks, records and streak are saved on this device only.');
   note.id = 'footNote';

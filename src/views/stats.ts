@@ -1,4 +1,4 @@
-import { getActivity } from '../games/registry';
+import { ACTIVITIES, getActivity } from '../games/registry';
 import { el } from '../lib/dom';
 import type { ViewDeps } from './types';
 
@@ -14,7 +14,7 @@ export function renderStatsView(deps: ViewDeps): HTMLElement {
   stats.setAttribute('aria-label', 'Your stats');
   const cells: Array<[string, string, string]> = [
     ['statClicks', String(s.clicks), 'Times clicked'],
-    ['statTried', `${Object.keys(s.tried).length}/8`, 'Distractions tried'],
+    ['statTried', `${Object.keys(s.tried).length}/${ACTIVITIES.length}`, 'Distractions tried'],
     ['statReaction', s.best.reactionMs === null ? '—' : `${s.best.reactionMs}ms`, 'Best reaction'],
     ['statTap', s.best.tapRush === null ? '—' : `${s.best.tapRush} taps`, 'Best tap rush'],
     ['statStreak', s.streak.count > 0 ? `🔥 ${s.streak.count}` : '—', 'Day streak'],

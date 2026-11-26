@@ -7,7 +7,14 @@ import { $, isReducedMotion } from './lib/dom';
 import { setMuted } from './lib/audio/engine';
 import { confetti } from './lib/fx';
 import { createToastHost, type ToastHost } from './components/toast';
-import { Router, type ViewDirection, type ViewId, type ViewState } from './lib/router';
+import {
+  Router,
+  hashToState,
+  stateToHash,
+  type ViewDirection,
+  type ViewId,
+  type ViewState,
+} from './lib/router';
 import { createMenu } from './components/menu';
 import { renderHome } from './views/home';
 import { renderGames } from './views/games';
@@ -136,8 +143,8 @@ export function createApp(store: Store, toast: ToastHost): App {
       mountIntoStage(id);
       return;
     }
+    // renderView mounts the game, so hash-driven navigation mounts it too.
     router.go({ id: 'game', gameId: id }, trigger);
-    mountIntoStage(id);
   }
 
   function renderView(state: ViewState, _direction: ViewDirection): HTMLElement | null {
@@ -168,6 +175,9 @@ export function createApp(store: Store, toast: ToastHost): App {
     }
     viewRoot.appendChild(node);
     updateHeader(state);
+    // The game view's stage is mounted here (not in openActivity) so a
+    // game reached by hash — refresh, browser Back, typed URL — mounts too.
+    if (state.id === 'game') mountIntoStage(state.gameId ?? '');
     return node.querySelector<HTMLElement>('[data-view-heading]');
   }
 
@@ -222,16 +232,31 @@ export function createApp(store: Store, toast: ToastHost): App {
     },
   );
 
-  const router = new Router({
-    render: renderView,
-    onLeave: (state) => {
-      if (state.id === 'game') runCleanup();
+  const router = new Router(
+    {
+      render: renderView,
+      onLeave: (state) => {
+        if (state.id === 'game') runCleanup();
+      },
+      isMenuOpen: () => menu.isOpen(),
+      closeMenu: () => menu.close(),
+      menuButton: () => moreBtn,
+      fallbackHeading: () => (viewTitle.textContent ? viewTitle : null),
     },
-    isMenuOpen: () => menu.isOpen(),
-    closeMenu: () => menu.close(),
-    menuButton: () => moreBtn,
-    fallbackHeading: () => (viewTitle.textContent ? viewTitle : null),
-  });
+    {
+      // Start on the view the URL hash names (refresh restores the view);
+      // an unknown hash falls back to Home.
+      initialState: hashToState(window.location.hash, (id) => getActivity(id) !== undefined),
+      isKnownGame: (id) => getActivity(id) !== undefined,
+    },
+  );
+
+  // Normalize the URL to the canonical hash of the view we landed on
+  // (no history entry, no hashchange event).
+  const canonicalHash = stateToHash(router.current());
+  if (window.location.hash !== canonicalHash) {
+    window.history.replaceState(null, '', canonicalHash);
+  }
 
   backBtn.addEventListener('click', () => router.back());
 

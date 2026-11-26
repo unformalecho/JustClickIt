@@ -1,5 +1,5 @@
 {
-  "description": "JustClickIt — a monochrome boredom-killer web app. One big button, eight tiny distractions.",
+  "description": "JustClickIt — a monochrome boredom-killer web app. One big button, nine tiny distractions.",
   "devDependencies": {
     "@eslint/js": "^9.18.0",
     "@playwright/test": "^1.49.0",

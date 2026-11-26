@@ -9,6 +9,7 @@ const GAMES = [
   'Memory Echo',
   'Guess the Number',
   'The Oracle',
+  'Mini Chess',
 ];
 
 async function openMenu(page: Page): Promise<void> {
@@ -54,17 +55,18 @@ test("home shows only the title and Let's Play; shuffle opens a game", async ({ 
   // The click is counted; Statistics shows it.
   await goTo(page, 'Statistics');
   await expect(page.locator('#statClicks')).toHaveText('1');
-  await expect(page.locator('#statTried')).toHaveText('1/8');
+  await expect(page.locator('#statTried')).toHaveText('1/9');
 
-  // A refresh always returns to Home (in-memory navigation).
+  // A refresh keeps the user on Statistics (hash routing).
   await page.reload();
-  await expect(page.locator('#homeTitle')).toHaveText('JustClickIt');
-  await expect(page.locator('#playBtn')).toBeVisible();
+  await expect(page.locator('#viewTitle')).toHaveText('Statistics');
+  await expect(page.locator('#statClicks')).toHaveText('1');
+  await expect(page).toHaveURL(/#\/stats$/);
 
   expect(errors).toEqual([]);
 });
 
-test('each of the 8 games opens from the Games view', async ({ page }) => {
+test('each of the 9 games opens from the Games view', async ({ page }) => {
   await goTo(page, 'Games');
   await expect(page.locator('#viewTitle')).toHaveText('Games');
   for (const name of GAMES) {
@@ -74,8 +76,8 @@ test('each of the 8 games opens from the Games view', async ({ page }) => {
     await expect(page.locator('.pick-head h2')).toHaveText('Or pick your poison');
   }
   await goTo(page, 'Statistics');
-  await expect(page.locator('#statTried')).toHaveText('8/8');
-  // Trying all 8 unlocks Completionist.
+  await expect(page.locator('#statTried')).toHaveText('9/9');
+  // Trying all 9 unlocks Completionist.
   await goTo(page, 'Achievements');
   await expect(page.locator('#view')).toContainText('Completionist');
 });
@@ -140,7 +142,7 @@ test('statistics reflect plays and history lists them', async ({ page }) => {
   await page.locator('.tile', { hasText: 'Beat Pad' }).click();
   await expect(page.locator('#stageTitle')).toHaveText('Beat Pad');
   await goTo(page, 'Statistics');
-  await expect(page.locator('#statTried')).toHaveText('1/8');
+  await expect(page.locator('#statTried')).toHaveText('1/9');
   await expect(page.locator('.history-list')).toHaveCount(0);
   await expect(page.locator('#view')).toContainText('No history yet');
 });
@@ -155,7 +157,7 @@ test('clear my data resets the app', async ({ page }) => {
   await expect(page.locator('#themeBtn')).toContainText('Theme: System');
   await goTo(page, 'Statistics');
   await expect(page.locator('#statClicks')).toHaveText('0');
-  await expect(page.locator('#statTried')).toHaveText('0/8');
+  await expect(page.locator('#statTried')).toHaveText('0/9');
 });
 
 test('no horizontal overflow at mobile width', async ({ page }) => {
@@ -229,4 +231,88 @@ test('tap rush plays with keyboard and pointer', async ({ page }) => {
   expect(taps).toBeGreaterThanOrEqual(10);
   await goTo(page, 'Statistics');
   await expect(page.locator('#statTap')).toHaveText(`${taps} taps`);
+});
+
+test('hash routes: refresh keeps the view, Back and Escape update the hash', async ({ page }) => {
+  // Open a game, refresh, still on the game.
+  await goTo(page, 'Games');
+  await page.locator('.tile', { hasText: 'Reaction Test' }).click();
+  await expect(page.locator('#stageTitle')).toHaveText('Reaction Test');
+  await expect(page).toHaveURL(/#\/game\/reaction$/);
+  await page.reload();
+  await expect(page.locator('#stageTitle')).toHaveText('Reaction Test');
+
+  // Back updates the hash to Games; Escape updates it to Home.
+  await page.locator('#backBtn').click();
+  await expect(page).toHaveURL(/#\/games$/);
+  await expect(page.locator('.pick-head h2')).toHaveText('Or pick your poison');
+  await page.keyboard.press('Escape');
+  await expect(page).toHaveURL(/#\/$/);
+  await expect(page.locator('#homeTitle')).toHaveText('JustClickIt');
+
+  // Refresh on Statistics stays on Statistics.
+  await goTo(page, 'Statistics');
+  await expect(page).toHaveURL(/#\/stats$/);
+  await page.reload();
+  await expect(page.locator('#viewTitle')).toHaveText('Statistics');
+
+  // An unknown hash falls back to Home and is normalized to #/.
+  await page.goto('./#/nope');
+  await expect(page.locator('#homeTitle')).toHaveText('JustClickIt');
+  await expect(page).toHaveURL(/#\/$/);
+});
+
+test('deep link: loading #/game/chess opens the game directly', async ({ page }) => {
+  await page.goto('./#/game/chess');
+  await expect(page.locator('#stageTitle')).toHaveText('Mini Chess');
+  await expect(page.locator('.csq')).toHaveCount(36);
+  // Back from a restored game returns to the Games picker.
+  await page.locator('#backBtn').click();
+  await expect(page.locator('.pick-head h2')).toHaveText('Or pick your poison');
+  await expect(page).toHaveURL(/#\/games$/);
+});
+
+test('mini chess plays: player moves, AI replies, Unsolvable answers too', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text());
+  });
+
+  await goTo(page, 'Games');
+  await page.locator('.tile', { hasText: 'Mini Chess' }).click();
+  await expect(page.locator('#stageTitle')).toHaveText('Mini Chess');
+  await expect(page.locator('.csq')).toHaveCount(36);
+  await expect(page.locator('#cStatus')).toHaveText('Your turn — White to move');
+  await expect(page.locator('#cModeChill')).toHaveAttribute('aria-pressed', 'true');
+
+  // e2 (square 28) to e3 (square 22): the pawn moves, the AI replies.
+  await page.locator('.csq[data-square="28"]').click();
+  await expect(page.locator('.csq[data-square="22"]')).toHaveClass(/target/);
+  await page.locator('.csq[data-square="22"]').click();
+  await expect(page.locator('.csq[data-square="22"]')).toContainText('♙');
+  await expect(page.locator('#cStatus')).toHaveText('Your turn — White to move', {
+    timeout: 5000,
+  });
+  // The AI moved a black piece: its captured tray is still empty, but the
+  // turn is back with us and the board is no longer the initial position.
+  await expect(page.locator('#cTrayBlack')).toHaveText('AI took: —');
+
+  // Switch to Unsolvable, move again, the AI still answers promptly.
+  await page.locator('#cModeHard').click();
+  await expect(page.locator('#cModeHard')).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('.csq[data-square="27"]').click(); // d2
+  await page.locator('.csq[data-square="21"]').click(); // d3
+  await expect(page.locator('.csq[data-square="21"]')).toContainText('♙');
+  await expect(page.locator('#cStatus')).toHaveText('Your turn — White to move', {
+    timeout: 8000,
+  });
+
+  // Restart resets the board.
+  await page.locator('#cNew').click();
+  await expect(page.locator('.csq[data-square="28"]')).toContainText('♙');
+  await expect(page.locator('.csq[data-square="22"]')).toHaveText('');
+  await expect(page.locator('#cStatus')).toHaveText('Your turn — White to move');
+
+  expect(errors).toEqual([]);
 });

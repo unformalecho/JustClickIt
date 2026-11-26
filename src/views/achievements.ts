@@ -1,4 +1,5 @@
 import { ACHIEVEMENTS } from '../lib/store/achievements';
+import { ACTIVITIES } from '../games/registry';
 import { el } from '../lib/dom';
 import type { ViewDeps } from './types';
 
@@ -14,7 +15,7 @@ export function renderAchievementsView(deps: ViewDeps): HTMLElement {
   const head = el(
     'p',
     undefined,
-    `${unlocked}/${ACHIEVEMENTS.length} unlocked · ${Object.keys(s.tried).length}/8 distractions tried`,
+    `${unlocked}/${ACHIEVEMENTS.length} unlocked · ${Object.keys(s.tried).length}/${ACTIVITIES.length} distractions tried`,
   );
   root.appendChild(head);
 

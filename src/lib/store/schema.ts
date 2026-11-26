@@ -33,6 +33,7 @@ export interface LocalStateV1 {
     beatHits: number;
     beatAutoStarts: number;
     oracleAsks: number;
+    chessWins: number;
   };
   history: HistoryEntry[];
   achievements: Record<string, string>; // achievement id -> ISO date unlocked
@@ -61,7 +62,7 @@ export function defaultState(): LocalStateV1 {
     tried: {},
     triedAt: {},
     best: { reactionMs: null, tapRush: null, memoryLevel: 0, guessFewest: null },
-    counts: { beatHits: 0, beatAutoStarts: 0, oracleAsks: 0 },
+    counts: { beatHits: 0, beatAutoStarts: 0, oracleAsks: 0, chessWins: 0 },
     history: [],
     achievements: {},
     streak: { lastVisit: null, count: 0, best: 0 },
@@ -116,6 +117,7 @@ export function validateState(raw: unknown): LocalStateV1 | null {
     s.counts.beatHits = asNonNegativeInt(raw.counts.beatHits, 0);
     s.counts.beatAutoStarts = asNonNegativeInt(raw.counts.beatAutoStarts, 0);
     s.counts.oracleAsks = asNonNegativeInt(raw.counts.oracleAsks, 0);
+    s.counts.chessWins = asNonNegativeInt(raw.counts.chessWins, 0);
   }
   if (Array.isArray(raw.history)) {
     s.history = raw.history
