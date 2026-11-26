@@ -39,6 +39,7 @@ test, a tiny oracle. All in English, all client-side, all on your device.
 | 6   | Memory Echo      | Simon-style pattern game                |
 | 7   | Guess the Number | 1–100 with thermal hints                |
 | 8   | The Oracle       | Coin flip, dice roll, decision ball     |
+| 9   | Mini Chess       | 6×6 chess vs AI — Chill or Unsolvable   |
 
 You can also pick any distraction straight from the grid — the button is only
 for when you cannot decide.
@@ -47,10 +48,11 @@ for when you cannot decide.
 
 - **Persistent progress.** Clicks, best scores, play history, theme and sound
   settings survive reloads (see [Data & privacy](#data--privacy)).
-- **11 achievements** with toasts: First Click, Explorer (4 distractions),
-  Completionist (all 8), Lightning (reaction < 180 ms), Fast Fingers (Tap Rush
+- **12 achievements** with toasts: First Click, Explorer (4 distractions),
+  Completionist (all 9), Lightning (reaction < 180 ms), Fast Fingers (Tap Rush
   ≥ 70), Echo Master (Memory Echo level 8), Lucky Guesser (≤ 4 guesses),
-  Beatmaker, Oracle Believer, 3-Day Streak, 7-Day Streak.
+  Beatmaker, Oracle Believer, Chess Master (win a game of Mini Chess),
+  3-Day Streak, 7-Day Streak.
 - **Daily streak** shown in the stats bar.
 - **Light / dark / system theme** and a sound toggle.
 - **Self-hosted fonts** (Archivo, Archivo Black, JetBrains Mono) — the site
@@ -72,7 +74,7 @@ npm run preview  # serve the production build locally
 | `npm run dev`      | Vite dev server                            |
 | `npm run build`    | `tsc -b && vite build`                     |
 | `npm run preview`  | Serve `dist/` (used by the e2e tests)      |
-| `npm test`         | Vitest unit tests (34 tests)               |
+| `npm test`         | Vitest unit tests (88 tests)               |
 | `npm run test:e2e` | Playwright smoke tests (Chromium + mobile) |
 | `npm run lint`     | ESLint                                     |
 | `npm run format`   | Prettier (write)                           |
@@ -120,10 +122,10 @@ src/
     streak.ts               # local-date daily streak
     data.ts                 # typed access to the JSON decks
   data/                     # dares/facts/jokes/riddles/wyr/oracle JSON (76 items)
-  games/                    # types.ts, registry.ts + one module per game
+  games/                    # types.ts, registry.ts + one module per game (chess/ has engine.ts + ai.ts)
   components/toast.ts       # achievement toast queue
 tests/
-  unit/                     # schema, storage, streak, achievements, random, data
+  unit/                     # schema, storage, streak, achievements, random, data, chess, chess-ai, router
   e2e/smoke.spec.ts         # Playwright: load, big button, all 9 games, persistence
 ```
 
