@@ -134,7 +134,7 @@ tests/
 The content decks were extracted verbatim from the original single-file
 prototype (`justclickit.html`, 1,001 lines). Actual counts: **24 dares,
 12 facts, 10 jokes, 8 riddles, 10 Would You Rather pairs, 12 Oracle
-answers = 76 items**. (The planning TODO said 9 riddles / 11 WYR pairs;
+answers = 76 items**. (An early estimate said 9 riddles / 11 WYR pairs;
 the file itself has 8 / 10 — the tests assert the real counts.)
 
 Known placeholder carried over from the prototype: Would You Rather
@@ -143,16 +143,11 @@ percentages are locally generated (`34 + rand(34)`), not real votes.
 ## Roadmap
 
 This is a for-fun project, not a serious product. **Phase 1 is done** and the
-app stays as it is for now.
+app stays as it is for now. Since then, multi-view navigation and Mini Chess
+(6×6, vs AI) have shipped.
 
-Ideas sketched for later, in `TODO.md`, if the mood strikes:
-
-- Phase 2: Supabase (real WYR votes, Global Daily Leaderboard, Share Result
-  cards, Submit-a-Dare moderation queue, Party / Pass & Play).
-- Phase 3: PWA manifest + Service Worker, favicon set, SEO / Open Graph,
-  privacy-friendly analytics (Umami / Plausible).
-
-See `TODO.md` for the full phased checklist.
+No Phase 2 or Phase 3 is planned. A few small polish items from the code
+review remain open, to be done only if the mood strikes.
 
 ## AI Disclosure
 
