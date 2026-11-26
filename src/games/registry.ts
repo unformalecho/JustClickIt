@@ -6,6 +6,7 @@ import { beatGame } from './beat';
 import { memoryGame } from './memory';
 import { guessGame } from './guess';
 import { oracleGame } from './oracle';
+import { chessGame } from './chess';
 import type { GameDef } from './types';
 
 export const ACTIVITIES: GameDef[] = [
@@ -17,6 +18,7 @@ export const ACTIVITIES: GameDef[] = [
   memoryGame,
   guessGame,
   oracleGame,
+  chessGame,
 ];
 
 export function getActivity(id: string): GameDef | undefined {

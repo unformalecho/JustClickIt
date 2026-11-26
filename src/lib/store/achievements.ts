@@ -1,4 +1,5 @@
 import type { LocalStateV1 } from './schema';
+import { ACTIVITIES } from '../../games/registry';
 
 export interface AchievementDef {
   id: string;
@@ -34,10 +35,10 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   {
     id: 'completionist',
     name: 'Completionist',
-    description: 'Try all 8 distractions.',
+    description: `Try all ${ACTIVITIES.length} distractions.`,
     icon: '🏆',
-    progress: (s) => Math.min(1, triedCount(s) / 8),
-    unlocked: (s) => triedCount(s) >= 8,
+    progress: (s) => Math.min(1, triedCount(s) / ACTIVITIES.length),
+    unlocked: (s) => triedCount(s) >= ACTIVITIES.length,
   },
   {
     id: 'lightning',
@@ -79,6 +80,14 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     progress: (s) =>
       Math.max(Math.min(1, s.counts.beatHits / 10), Math.min(1, s.counts.beatAutoStarts / 5)),
     unlocked: (s) => s.counts.beatHits >= 10 || s.counts.beatAutoStarts >= 5,
+  },
+  {
+    id: 'chess-master',
+    name: 'Chess Master',
+    description: 'Win a game of Mini Chess.',
+    icon: '♞',
+    progress: (s) => Math.min(1, s.counts.chessWins),
+    unlocked: (s) => s.counts.chessWins >= 1,
   },
   {
     id: 'oracle-believer',
