@@ -63,6 +63,21 @@ fixed (commit `4670dd2`). Remaining:
 - [ ] **Minor (Complexity)** — `validateState` complexity 26
       (`src/lib/store/schema.ts:89-148`). Split it up if P2-1 is fixed.
 
+## Open — new ideas (added 2026-11-26)
+
+- [ ] **Login (joke feature)** — a login that gives you nothing. It only
+      marks your streak, then congratulates you with something like "Congrats,
+      (name)! You get nothing." (and variations). No account, no backend, no
+      benefit — the joke is the point.
+- [ ] **Fix Tap Rush tap issue** — something is off when tapping, similar to
+      the profile-page flip-card case (blue tap-highlight flash). Diagnose the
+      exact symptom first, then fix.
+- [ ] **UI sound effects** — small sounds for UI actions, e.g. opening the
+      ⋯ menu and other taps/clicks. Same Web Audio synth approach as the game
+      sounds; respect the sound toggle.
+- [ ] **Username setting** — a username field in Settings, default `@clicker`.
+      Used by the login congrats message (and anywhere a name is shown).
+
 ## Not planned
 
 - **Phase 2** (Supabase: real WYR votes, leaderboard, share cards, moderation
