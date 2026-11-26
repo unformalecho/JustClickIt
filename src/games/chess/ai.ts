@@ -9,7 +9,8 @@
  * material + piece-square-table evaluation that prefers the fastest mate.
  * Strong enough that a casual player effectively cannot win — that is the
  * joke. The search never exceeds its time budget: it checks the deadline
- * every 2048 nodes and returns the best move from the last completed depth.
+ * on an adaptive interval (starting every 256 nodes, tightening when
+ * nodes are slow) and returns the best move from the last completed depth.
  */
 
 import {
@@ -119,6 +120,14 @@ interface SearchState {
   nodes: number;
   deadline: number;
   aborted: boolean;
+  /**
+   * Nodes between deadline checks. Starts at 256 and adapts to node speed:
+   * when checks are slow (slow CPU) it halves toward 32 so the budget is
+   * never overshot by much; when checks are cheap it doubles toward 2048
+   * to keep the Date.now() overhead negligible.
+   */
+  checkEvery: number;
+  lastCheckAt: number;
 }
 
 function negamax(
@@ -130,11 +139,26 @@ function negamax(
   ply: number,
   state: SearchState,
 ): number {
-  if ((state.nodes & 2047) === 0 && Date.now() >= state.deadline) {
-    state.aborted = true;
-    return 0;
+  if (state.nodes % state.checkEvery === 0) {
+    const now = Date.now();
+    const elapsed = now - state.lastCheckAt;
+    state.lastCheckAt = now;
+    if (elapsed > 25 && state.checkEvery > 32)
+      state.checkEvery = Math.max(32, state.checkEvery >> 1);
+    else if (elapsed < 5 && state.checkEvery < 2048)
+      state.checkEvery = Math.min(2048, state.checkEvery << 1);
+    if (now >= state.deadline) {
+      state.aborted = true;
+      return 0;
+    }
   }
   state.nodes++;
+
+  // Leaf node: static evaluation only. Generating legal moves here (as the
+  // old code did) wasted the whole move generation on a node whose moves
+  // are never used. Mate/stalemate is still detected at depth >= 1, where
+  // moves are generated anyway, so forced mates are found from depth 2 up.
+  if (depth <= 0) return evaluate(board, color);
 
   const moves = legalMoves(board, color);
   if (moves.length === 0) {
@@ -142,7 +166,6 @@ function negamax(
     // mate when winning, the slowest when losing). Stalemate is a draw.
     return isInCheck(board, color) ? -(MATE_SCORE - ply) : 0;
   }
-  if (depth <= 0) return evaluate(board, color);
 
   const ordered = orderMoves(moves, board);
   let best = -Infinity;
@@ -175,10 +198,13 @@ export function chooseBestMove(board: Board, color: Color, timeBudgetMs = 1000):
   if (moves.length === 0) return null;
   if (moves.length === 1) return moves[0] as Move;
 
+  const now = Date.now();
   const state: SearchState = {
     nodes: 0,
-    deadline: Date.now() + Math.max(1, timeBudgetMs),
+    deadline: now + Math.max(1, timeBudgetMs),
     aborted: false,
+    checkEvery: 256,
+    lastCheckAt: now,
   };
   let bestMove = moves[0] as Move;
   for (let depth = 1; depth <= 20; depth++) {
