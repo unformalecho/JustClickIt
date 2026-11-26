@@ -55,9 +55,6 @@ for when you cannot decide.
   3-Day Streak, 7-Day Streak.
 - **Daily streak** shown in the stats bar.
 - **Light / dark / system theme** and a sound toggle.
-- **Deep links.** Every view has a hash route (`#/games`, `#/game/mini-chess`,
-  `#/stats`, `#/achievements`, `#/settings`, `#/about`) — refreshing keeps
-  your place instead of returning to Home.
 - **Self-hosted fonts** (Archivo, Archivo Black, JetBrains Mono) — the site
   makes zero requests to third parties at runtime.
 
@@ -129,7 +126,7 @@ src/
   components/toast.ts       # achievement toast queue
 tests/
   unit/                     # schema, storage, streak, achievements, random, data, chess, chess-ai, router
-  e2e/smoke.spec.ts         # Playwright: load, big button, all 9 games, hash routes, persistence
+  e2e/smoke.spec.ts         # Playwright: load, big button, all 9 games, persistence
 ```
 
 ## Content note
