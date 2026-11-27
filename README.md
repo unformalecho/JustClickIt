@@ -86,9 +86,9 @@ The site is deployed to **GitHub Pages** from `main` via
 `npm ci` → `npm run build` → deploy `dist/`). Every push to `main` redeploys.
 
 - **Live URL:** `https://unformalecho.github.io/JustClickIt/`
-- **Base path:** Vite `base` is `/JustClickIt/` (repo name). The PWA manifest,
-  fonts and asset URLs all use the same base — do not change it to `/` unless
-  the repo is renamed or a custom domain is added.
+- **Base path:** Vite `base` is `/JustClickIt/` (repo name). The fonts and
+  asset URLs all use the same base — do not change it to `/` unless the repo
+  is renamed or a custom domain is added.
 - **Repo must be public** for free GitHub Pages. A private repo needs a paid
   plan; if the code must stay private, revisit this decision.
 - There is **no server** on the host. Everything is static + client-side.

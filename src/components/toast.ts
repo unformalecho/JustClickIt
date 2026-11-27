@@ -7,7 +7,8 @@ export interface ToastHost {
   show: (title: string, body?: string) => void;
 }
 
-/** Toast queue. Auto-dismiss ~4s, role=status, max 3 visible, reduced-motion safe. */
+/** Toast queue. Auto-dismiss ~4s, role=status, max 3 visible, reduced-motion safe.
+ * Each toast has a keyboard-focusable dismiss button (clicking the toast also dismisses). */
 export function createToastHost(): ToastHost {
   let host = document.querySelector<HTMLElement>('.toasts');
   if (!host) {
@@ -42,6 +43,17 @@ export function createToastHost(): ToastHost {
         setTimeout(() => t.remove(), 320);
       };
       const timer = setTimeout(remove, DISMISS_MS);
+      const close = document.createElement('button');
+      close.type = 'button';
+      close.className = 'toast-close';
+      close.setAttribute('aria-label', 'Dismiss notification');
+      close.textContent = '✕';
+      close.addEventListener('click', (event) => {
+        event.stopPropagation();
+        clearTimeout(timer);
+        remove();
+      });
+      t.appendChild(close);
       t.addEventListener('click', () => {
         clearTimeout(timer);
         remove();

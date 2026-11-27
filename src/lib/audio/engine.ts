@@ -5,10 +5,6 @@ export function setMuted(m: boolean): void {
   muted = m;
 }
 
-export function isMuted(): boolean {
-  return muted;
-}
-
 /** Lazily created AudioContext singleton. Returns null when audio is unavailable. */
 export function ensureAudio(): AudioContext | null {
   if (muted) return null;
@@ -25,9 +21,4 @@ export function ensureAudio(): AudioContext | null {
   }
   if (actx && actx.state === 'suspended') void actx.resume();
   return actx;
-}
-
-export function audioNow(): number {
-  const ac = ensureAudio();
-  return ac ? ac.currentTime : 0;
 }

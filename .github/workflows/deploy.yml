@@ -21,11 +21,17 @@ jobs:
         # latin subsets from Google Fonts so the deployed site stays
         # self-hosted (no Google Fonts requests at runtime). They land in
         # src/assets/fonts so Vite bundles them (hashed, base-aware).
+        # The expected SHA-256 hashes are pinned below; a download that
+        # does not match fails the build instead of shipping a silently
+        # changed (or tampered) font.
         run: |
           mkdir -p src/assets/fonts
           curl -fsSL -o src/assets/fonts/Archivo.woff2 "https://fonts.gstatic.com/s/archivo/v25/k3kPo8UDI-1M0wlSV9XAw6lQkqWY8Q82sLydOxI.woff2"
           curl -fsSL -o src/assets/fonts/ArchivoBlack-400.woff2 "https://fonts.gstatic.com/s/archivoblack/v23/HTxqL289NzCGg4MzN6KJ7eW6CYyF_g.woff2"
           curl -fsSL -o src/assets/fonts/JetBrainsMono.woff2 "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD7OwE.woff2"
+          echo "8f704806dbedeaaeca334b11ec348bc3ac3a439d6431544b3afb54f534ee4967  src/assets/fonts/Archivo.woff2" | sha256sum -c -
+          echo "25f33e61cf995abd6be62931cf03bf427286259177b43618cc410ee0157cfd30  src/assets/fonts/ArchivoBlack-400.woff2" | sha256sum -c -
+          echo "18be452724bfdc236c074ca94a249a7f41a86752c7d04ab258ce9ed5651f6a7e  src/assets/fonts/JetBrainsMono.woff2" | sha256sum -c -
       - uses: actions/setup-node@v4
         with:
           node-version: 22

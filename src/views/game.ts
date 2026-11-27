@@ -20,7 +20,6 @@ export function renderGameView(gameId: string): HTMLElement {
 
   const stage = el('section', 'stage');
   stage.id = 'stage';
-  stage.setAttribute('aria-live', 'polite');
   stage.innerHTML = '<div class="empty"><span class="face">¯\\_(ツ)_/¯</span>Loading…</div>';
 
   root.append(head, stage);

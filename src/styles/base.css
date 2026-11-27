@@ -40,12 +40,6 @@ a:focus-visible {
   padding: 28px 18px 56px;
 }
 
-.wrap {
-  max-width: 880px;
-  margin: 0 auto;
-  padding: 28px 18px 56px;
-}
-
 footer {
   margin-top: 48px;
   text-align: center;
@@ -78,11 +72,12 @@ footer .mono {
   width: min(92vw, 420px);
 }
 .toast {
+  position: relative;
   border: 3px solid var(--ink);
   background: var(--paper);
   color: var(--ink);
   box-shadow: 6px 6px 0 var(--shadow);
-  padding: 12px 14px;
+  padding: 12px 40px 12px 14px;
   font-weight: 700;
 }
 .toast small {
@@ -93,6 +88,27 @@ footer .mono {
   font-size: 0.75rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+.toast-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.toast-close:hover,
+.toast-close:focus-visible {
+  background: var(--ink);
+  color: var(--paper);
+  outline: none;
 }
 
 /* Toolbar / modal / history (Phase 1, new) */

@@ -72,6 +72,8 @@ test('each of the 9 games opens from the Games view', async ({ page }) => {
   for (const name of GAMES) {
     await page.locator('.tile', { hasText: name }).click();
     await expect(page.locator('#stageTitle')).toHaveText(name);
+    // The whole stage is not a live region: the heading focus announces the switch.
+    await expect(page.locator('#stage')).not.toHaveAttribute('aria-live');
     await page.locator('#backBtn').click();
     await expect(page.locator('.pick-head h2')).toHaveText('Or pick your poison');
   }
@@ -154,6 +156,10 @@ test('clear my data resets the app', async ({ page }) => {
   await goTo(page, 'Settings');
   await page.locator('#clearBtn').click();
   await expect(page.locator('.toasts')).toContainText('Data cleared');
+  // The toast is keyboard-dismissible: focus its close button and press Enter.
+  await page.locator('.toast-close').focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.toast')).toHaveCount(0);
   await expect(page.locator('#themeBtn')).toContainText('Theme: System');
   await goTo(page, 'Statistics');
   await expect(page.locator('#statClicks')).toHaveText('0');
